@@ -46,7 +46,7 @@ public class WebServerConfig {
      * The timeout for asynchronous requests in milliseconds.
      */
     //@Value("${server.tomcat.async-timeout}")
-    private final int tomcatAsyncTimeout = 5000;
+    private final int tomcatAsyncTimeout = 8000;
 
     @Bean
     public TomcatServletWebServerFactory webServerFactory() {
