@@ -1,4 +1,4 @@
-package test.configs;
+package api.test.configs;
 
 import org.apache.coyote.AbstractProtocol;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;

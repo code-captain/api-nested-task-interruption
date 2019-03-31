@@ -1,4 +1,4 @@
-package test.models;
+package api.test.models;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TestView {
+public class TaskTreeTraversalView {
     private long id;
     private  List<String> contents = new ArrayList<>();
 }

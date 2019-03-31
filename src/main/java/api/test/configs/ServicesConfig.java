@@ -1,11 +1,11 @@
-package test.configs;
+package api.test.configs;
 
+import api.test.services.TaskTreeTraversalService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import test.services.TestService;
-import test.services.TestServiceImpl;
+import api.test.services.TestService;
 
 import java.util.concurrent.Executor;
 
@@ -16,6 +16,6 @@ public class ServicesConfig {
     public TestService testService(
             @Qualifier("custom-executor") Executor executor
     ) {
-        return new TestServiceImpl(executor);
+        return new TaskTreeTraversalService(executor);
     }
 }

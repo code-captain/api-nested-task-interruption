@@ -1,4 +1,4 @@
-package test.configs;
+package api.test.configs;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

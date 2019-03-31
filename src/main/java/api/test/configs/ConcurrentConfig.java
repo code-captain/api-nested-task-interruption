@@ -1,4 +1,4 @@
-package test.configs;
+package api.test.configs;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
