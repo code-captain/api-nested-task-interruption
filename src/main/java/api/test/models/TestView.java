@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TaskTreeTraversalView {
+public class TestView {
     private long id;
     private  List<String> contents = new ArrayList<>();
 }

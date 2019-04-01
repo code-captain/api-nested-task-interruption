@@ -18,10 +18,10 @@ public class ConcurrentConfig  implements AsyncConfigurer {
     @Qualifier("custom-executor")
     public Executor executor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(0);
+        executor.setCorePoolSize(20);
         executor.setMaxPoolSize(400);
-        executor.setQueueCapacity(0);
-        //executor.setKeepAliveSeconds(1);
+        executor.setQueueCapacity(20);
+        executor.setKeepAliveSeconds(30);
         executor.setThreadNamePrefix("test-pool-" + NAME);
         executor.setThreadGroupName(NAME);
         //executor.setAwaitTerminationSeconds(timeout);
