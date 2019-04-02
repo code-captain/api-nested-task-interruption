@@ -3,6 +3,7 @@ package api.test.exceptions;
 import api.test.models.ExecutorContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,11 +17,9 @@ import java.io.IOException;
 @ControllerAdvice
 public class AsyncRequestTimeoutExceptionResolver {
     private final Logger LOGGER = LogManager.getLogger(getClass().getName());
-    private final ExecutorContext executorContext;
 
-    public AsyncRequestTimeoutExceptionResolver(ExecutorContext executorContext) {
-        this.executorContext = executorContext;
-    }
+    @Autowired
+    public ExecutorContext executorContext;
 
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     protected ModelAndView handleAsyncRequestTimeoutException(

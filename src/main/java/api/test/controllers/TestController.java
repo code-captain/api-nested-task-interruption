@@ -26,7 +26,6 @@ public class TestController {
         this.service = service;
     }
 
-    //@Async
     @CrossOrigin(origins = "*")
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE

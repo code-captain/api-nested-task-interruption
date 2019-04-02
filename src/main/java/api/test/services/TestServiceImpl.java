@@ -1,10 +1,9 @@
 package api.test.services;
 
-import api.test.models.ExecutorContext;
+import api.test.models.TestView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
-import api.test.models.TestView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,11 +16,9 @@ import java.util.concurrent.Executor;
 public class TestServiceImpl implements TestService {
     private final Logger LOGGER = LogManager.getLogger(getClass().getName());
     private final Executor executor;
-    private final ExecutorContext executorContext;
 
-    public TestServiceImpl(Executor executor, ExecutorContext executorContext) {
+    public TestServiceImpl(Executor executor) {
         this.executor = executor;
-        this.executorContext = executorContext;
     }
 
     public CompletableFuture<TestView> getView(HttpServletRequest request, HttpServletResponse response) {
@@ -32,11 +29,11 @@ public class TestServiceImpl implements TestService {
         }, executor).thenCompose(none -> {
             List<CompletableFuture<Void>> descendentTasksForLevel1 = new ArrayList<>();
 
-            CompletableFuture<Void> getLevel1DescendentTask1 = getDescendentTaskWithTimeout(request, response, view, "1", 500, false)
+            CompletableFuture<Void> getLevel1DescendentTask1 = getDescendentTaskWithTimeout(request, response, view, "1", 800, false)
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> level2DescendentTasks = new ArrayList<>();
                             CompletableFuture<String> descendentTaskWithTimeout1 = getDescendentTaskWithTimeout(request, response, view, rootStr, 2000, false)
-                                    .thenCompose(rootStr1 -> getDescendentTaskWithTimeout(request, response, view, rootStr1, 10000, false));
+                                    .thenCompose(rootStr1 -> getDescendentTaskWithTimeout(request, response, view, rootStr1, 2000, false));
                             level2DescendentTasks.add(descendentTaskWithTimeout1);
                             level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 2000, false));
 
@@ -44,21 +41,21 @@ public class TestServiceImpl implements TestService {
                         });
                 descendentTasksForLevel1.add(getLevel1DescendentTask1);
 
-                CompletableFuture<Void> getDescendentTask2 = getDescendentTaskWithTimeout(request, response, view, "2", 100, false)
+                CompletableFuture<Void> getDescendentTask2 = getDescendentTaskWithTimeout(request, response, view, "2", 800, false)
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> level2DescendentTasks = new ArrayList<>();
-                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 100, false));
-                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 100, false));
+                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 500, false));
+                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 500, false));
 
                             return CompletableFuture.allOf(level2DescendentTasks.toArray(new CompletableFuture[]{}));
                         });
                 descendentTasksForLevel1.add(getDescendentTask2);
 
-            CompletableFuture<Void> getDescendentTask3 = getDescendentTaskWithTimeout(request, response, view, "3", 1000, false)
+            CompletableFuture<Void> getDescendentTask3 = getDescendentTaskWithTimeout(request, response, view, "3", 800, false)
                     .thenCompose(rootStr -> {
                         List<CompletableFuture<String>> level2DescendentTasks = new ArrayList<>();
-                        level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 1000, false));
-                        level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 1000, false));
+                        level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 3000, false));
+                        level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 3000, false));
 
                         return CompletableFuture.allOf(level2DescendentTasks.toArray(new CompletableFuture[]{}));
                     });
@@ -82,7 +79,6 @@ public class TestServiceImpl implements TestService {
                     rootView.getContents().add(str);
                     LOGGER.info("Current id={}", str);
                     LOGGER.info("Current response status={}", response.getStatus());
-                    LOGGER.info("Current response isFinished status={}", executorContext.isFinished());
                     return str;
                 });
     }

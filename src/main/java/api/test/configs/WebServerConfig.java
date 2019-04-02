@@ -10,7 +10,7 @@ import java.util.Collections;
 
 @Configuration
 public class WebServerConfig {
-    private final int portNumber = 8081;
+    private final int portNumber = 8080;
 
     /**
      * The maximum number of request processing threads to be created.
