@@ -1,12 +1,10 @@
 package api.test.services;
 
+import api.test.models.TestServiceContext;
 import api.test.models.TestView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -21,7 +19,7 @@ public class TestServiceImpl implements TestService {
         this.executor = executor;
     }
 
-    public CompletableFuture<TestView> getView(HttpServletRequest request, HttpServletResponse response) {
+    public CompletableFuture<TestView> getView(TestServiceContext context) {
         TestView view = new TestView();
         return CompletableFuture.supplyAsync(() -> {
             view.setId(new Random().nextLong());
@@ -29,68 +27,88 @@ public class TestServiceImpl implements TestService {
         }, executor).thenCompose(none -> {
             List<CompletableFuture<Void>> descendentTasksForLevel1 = new ArrayList<>();
 
-            CompletableFuture<Void> getLevel1DescendentTask1 = getDescendentTaskWithTimeout(request, response, view, "1", 800, false)
+            //Add first task for level-1
+            CompletableFuture<Void> getLevel1DescendentTask1 =
+                    getDescendentTaskWithDelay(view, "1", context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
-                            List<CompletableFuture<String>> level2DescendentTasks = new ArrayList<>();
-                            CompletableFuture<String> descendentTaskWithTimeout1 = getDescendentTaskWithTimeout(request, response, view, rootStr, 2000, false)
-                                    .thenCompose(rootStr1 -> getDescendentTaskWithTimeout(request, response, view, rootStr1, 2000, false));
-                            level2DescendentTasks.add(descendentTaskWithTimeout1);
-                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 2000, false));
+                            List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
-                            return CompletableFuture.allOf(level2DescendentTasks.toArray(new CompletableFuture[]{}));
+                            //Add first task for level-2 first task
+                            descendentTasksForLevel2.add(
+                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                    .thenCompose(rootStr1 ->
+                                            getDescendentTaskWithDelay(view, rootStr1, context.getThirdLevelDescendentTaskDelay())
+                                    )
+                            );
+
+                            //Add second task for level-2 first task
+                            descendentTasksForLevel2.add(
+                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                            );
+
+                            return CompletableFuture.allOf(descendentTasksForLevel2.toArray(new CompletableFuture[]{}));
                         });
-                descendentTasksForLevel1.add(getLevel1DescendentTask1);
+            descendentTasksForLevel1.add(getLevel1DescendentTask1);
 
-                CompletableFuture<Void> getDescendentTask2 = getDescendentTaskWithTimeout(request, response, view, "2", 800, false)
+            //Add second task for level-1
+            CompletableFuture<Void> getDescendentTask2 =
+                    getDescendentTaskWithDelay(view, "2", context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
-                            List<CompletableFuture<String>> level2DescendentTasks = new ArrayList<>();
-                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 500, false));
-                            level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 500, false));
+                            List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
-                            return CompletableFuture.allOf(level2DescendentTasks.toArray(new CompletableFuture[]{}));
+                            //Add first task for level-2 second task
+                            descendentTasksForLevel2.add(
+                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                            );
+
+                            //Add second task for level-2 second task
+                            descendentTasksForLevel2.add(
+                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                            );
+
+                            return CompletableFuture.allOf(descendentTasksForLevel2.toArray(new CompletableFuture[]{}));
                         });
-                descendentTasksForLevel1.add(getDescendentTask2);
+            descendentTasksForLevel1.add(getDescendentTask2);
 
-            CompletableFuture<Void> getDescendentTask3 = getDescendentTaskWithTimeout(request, response, view, "3", 800, false)
-                    .thenCompose(rootStr -> {
-                        List<CompletableFuture<String>> level2DescendentTasks = new ArrayList<>();
-                        level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 3000, false));
-                        level2DescendentTasks.add(getDescendentTaskWithTimeout(request, response, view, rootStr, 3000, false));
+            //Add third task for level 1
+            CompletableFuture<Void> getDescendentTask3 =
+                    getDescendentTaskWithDelay(view, "3", context.getFirstLevelDescendentTaskDelay())
+                        .thenCompose(rootStr -> {
+                            List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
-                        return CompletableFuture.allOf(level2DescendentTasks.toArray(new CompletableFuture[]{}));
-                    });
+                            //Add first task for level-2 third task
+                            descendentTasksForLevel2.add(
+                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                            );
+
+                            //Add second task for level-2 third task
+                            descendentTasksForLevel2.add(
+                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                            );
+
+                            return CompletableFuture.allOf(descendentTasksForLevel2.toArray(new CompletableFuture[]{}));
+                        });
             descendentTasksForLevel1.add(getDescendentTask3);
 
                 return CompletableFuture.allOf(descendentTasksForLevel1.toArray(new CompletableFuture[]{}));
             })
-            .thenApply(nope -> view);
+            .thenApply(none -> view);
     }
 
-    private CompletableFuture<String> getDescendentTaskWithTimeout(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            TestView rootView,
-            String rootId,
-            long millis,
-            boolean isThrowingException
-    ) {
-        return createDescendentTaskWithTimeout(rootId, millis, isThrowingException)
+    private CompletableFuture<String> getDescendentTaskWithDelay(TestView rootView, String rootId, long delayMs) {
+        return createDescendentTaskWithDelay(rootId, delayMs)
                 .thenApply(str -> {
                     rootView.getContents().add(str);
                     LOGGER.info("Current id={}", str);
-                    LOGGER.info("Current response status={}", response.getStatus());
                     return str;
                 });
     }
 
-    private CompletableFuture<String> createDescendentTaskWithTimeout(String rootId, long millis, boolean isThrowingException) {
+    private CompletableFuture<String> createDescendentTaskWithDelay(String rootId, long delayMs) {
         return CompletableFuture.supplyAsync(
                 () -> {
-                    if (isThrowingException) {
-                        throw new AsyncRequestTimeoutException();
-                    }
                     try {
-                        Thread.sleep(millis);
+                        Thread.sleep(delayMs);
                     } catch (InterruptedException e) {
                         LOGGER.error("Thread was interrupted", e);
                     }
@@ -100,8 +118,6 @@ public class TestServiceImpl implements TestService {
 
     private String createNodePath(String root) {
         int descendId = new Random().nextInt(100);
-        LOGGER.info("Add id={} to path", descendId);
-
         return String.format("%s.%s", root, descendId);
     }
 }

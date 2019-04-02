@@ -1,19 +1,17 @@
 package api.test.controllers;
 
+import api.test.models.BaseResult;
+import api.test.models.TestServiceContext;
+import api.test.models.TestView;
+import api.test.services.TestService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import api.test.models.BaseResult;
-import api.test.models.TestView;
-import api.test.services.TestService;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -26,17 +24,40 @@ public class TestController {
         this.service = service;
     }
 
-    @CrossOrigin(origins = "*")
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        LOGGER.info("Start processing");
-        return service.getView(request, response)
+    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView() {
+        LOGGER.info("--------Start handle request");
+        TestServiceContext context = new TestServiceContext(
+            10,
+            25,
+            35
+        );
+        return service.getView(context)
                 .thenApply(BaseResult::new)
-                .thenApply(ResponseEntity::ok);
+                .thenApply(body -> {
+                    LOGGER.info("--------End handle request");
+                    return ResponseEntity.ok(body);
+                });
+    }
+
+    @GetMapping(
+            path = "/fail",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getFailureView() {
+        LOGGER.info("--------Start handle request");
+        TestServiceContext context = new TestServiceContext(
+                1000,
+                2000,
+                3000
+        );
+        return service.getView(context)
+                .thenApply(BaseResult::new)
+                .thenApply(body -> {
+                    LOGGER.info("--------End handle request");
+                    return ResponseEntity.ok(body);
+                });
     }
 }
