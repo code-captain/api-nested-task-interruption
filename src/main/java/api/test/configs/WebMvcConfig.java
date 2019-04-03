@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 public class WebMvcConfig extends WebMvcConfigurationSupport {
     @Override
     public void configureAsyncSupport(final AsyncSupportConfigurer configurer) {
-        configurer.setDefaultTimeout(500);
+        configurer.setDefaultTimeout(400);
     }
 
     @Override

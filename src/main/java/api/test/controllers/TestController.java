@@ -34,18 +34,18 @@ public class TestController {
         TestServiceContext context = new TestServiceContext(
             10,
             25,
-            35
+            10
         );
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End successfully handling request uuid {}", requestUuid);
+                    LOGGER.info("--------End handling request uuid {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }
 
     @GetMapping(
-            path = "/fail",
+            path = "/error",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getFailureView(HttpServletRequest request) {
@@ -53,13 +53,13 @@ public class TestController {
         LOGGER.info("--------Start handling request uuid {}", requestUuid);
         TestServiceContext context = new TestServiceContext(
                 1000,
-                2000,
-                3000
+                8000,
+                1000
         );
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End successfully handling request uuid {}", requestUuid);
+                    LOGGER.info("--------End handling request uuid {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }

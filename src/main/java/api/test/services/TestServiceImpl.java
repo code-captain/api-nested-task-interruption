@@ -127,6 +127,6 @@ public class TestServiceImpl implements TestService {
     }
 
     private String createDescendentTaskId(Object rootId, Object objectId) {
-        return String.format("%s.%s", rootId, objectId);
+        return String.format("%s----%s", rootId, objectId);
     }
 }
