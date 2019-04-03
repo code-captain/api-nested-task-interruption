@@ -25,7 +25,7 @@ public class AsyncRequestTimeoutExceptionResolver {
     ) throws IOException {
         if (!response.isCommitted()) {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            LOGGER.warn("AsyncRequestTimeoutException was handling");
+            LOGGER.warn("AsyncRequestTimeoutException was handling for request id {}", request.getAttribute("uuid"));
         } else {
             LOGGER.warn("Async request timed out");
         }

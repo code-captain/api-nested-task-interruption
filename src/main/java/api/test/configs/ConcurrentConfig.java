@@ -46,7 +46,6 @@ public class ConcurrentConfig  implements AsyncConfigurer {
         executor.setKeepAliveSeconds(30);
         executor.setThreadNamePrefix("context-aware-pool-" + NAME);
         executor.setThreadGroupName(NAME);
-        executor.setAwaitTerminationSeconds(1);
         executor.setAllowCoreThreadTimeOut(true);
         executor.initialize();
 
@@ -58,19 +57,20 @@ public class ConcurrentConfig  implements AsyncConfigurer {
 
         @Override
         public void execute(Runnable task) {
-            try {
+            //try {
                 HttpServletRequest innerRequest = getRequest(RequestContextHolder.getRequestAttributes());
                 Object requestUuid = innerRequest.getAttribute("uuid");
                 if (requestUuid != null) {
                     super.execute(new RequestContextAwareRunnable(task, RequestContextHolder.currentRequestAttributes()));
-                    LOGGER.info("Task was running for request uuid {}", requestUuid);
+                    LOGGER.info("Task was added for execute for request requestId {}", requestUuid);
                 } else {
-                    LOGGER.warn("Task was rejected for closing request");
+                    LOGGER.warn("Task was rejected for execute for closing request");
+                    throw new RuntimeException(new InterruptedException("Task was rejected for execute for closing request"));
                 }
-            } catch (Exception ex) {
+/*            } catch (Exception ex) {
                 super.execute(task);
-                LOGGER.warn("Was throwing exception before task was running", ex);
-            }
+                LOGGER.warn("Was throwing exception before task was added for pool", ex);
+            }*/
         }
     }
 
@@ -85,12 +85,13 @@ public class ConcurrentConfig  implements AsyncConfigurer {
 
         @Override
         public void run()  {
-            if (context != null) {
+            RequestAttributes innerRequestAttributes = RequestContextHolder.getRequestAttributes();
+            if (context != null && innerRequestAttributes == null) {
                 RequestContextHolder.setRequestAttributes(context, true);
             }
 
             task.run();
-            RequestContextHolder.resetRequestAttributes();
+            //RequestContextHolder.resetRequestAttributes();
         }
     }
 }

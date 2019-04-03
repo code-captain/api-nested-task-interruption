@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -30,16 +31,24 @@ public class TestController {
     )
     public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView(HttpServletRequest request) {
         Object requestUuid = request.getAttribute("uuid");
-        LOGGER.info("--------Start handle request uuid {}", requestUuid);
-        TestServiceContext context = new TestServiceContext(
-            10,
-            25,
-            10
+        LOGGER.info("--------Start handle request requestId {}", requestUuid);
+
+        TestServiceContext context = new TestServiceContext();
+        context.setRequestId(requestUuid);
+        context.setFirstLevelDescendentTaskDelay(
+            new Random().nextInt((400 - 100) + 1) + 100
         );
+        context.setSecondLevelDescendentTaskDelay(
+            new Random().nextInt((850 - 250) + 1) + 250
+        );
+        context.setThirdLevelDescendentTaskDelay(
+            new Random().nextInt((650 - 185) + 1) + 185
+        );
+
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End handling request uuid {}", requestUuid);
+                    LOGGER.info("--------End handling request requestId {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }
@@ -50,16 +59,18 @@ public class TestController {
     )
     public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getFailureView(HttpServletRequest request) {
         Object requestUuid = request.getAttribute("uuid");
-        LOGGER.info("--------Start handling request uuid {}", requestUuid);
-        TestServiceContext context = new TestServiceContext(
-                1000,
-                8000,
-                1000
-        );
+        LOGGER.info("--------Start handling request requestId {}", requestUuid);
+
+        TestServiceContext context = new TestServiceContext();
+        context.setRequestId(requestUuid);
+        context.setFirstLevelDescendentTaskDelay(new Random().nextInt(1000));
+        context.setSecondLevelDescendentTaskDelay(new Random().nextInt(8000));
+        context.setThirdLevelDescendentTaskDelay(new Random().nextInt(1000));
+
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End handling request uuid {}", requestUuid);
+                    LOGGER.info("--------End handling request requestId {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }
