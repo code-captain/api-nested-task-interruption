@@ -1,6 +1,5 @@
 package api.test.models;
 
-import com.sun.org.apache.xerces.internal.xs.StringList;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

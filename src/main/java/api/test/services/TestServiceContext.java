@@ -1,4 +1,4 @@
-package api.test.models;
+package api.test.services;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

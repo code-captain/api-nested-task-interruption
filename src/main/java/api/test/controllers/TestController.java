@@ -1,7 +1,7 @@
 package api.test.controllers;
 
 import api.test.models.BaseResult;
-import api.test.models.TestServiceContext;
+import api.test.services.TestServiceContext;
 import api.test.models.TestView;
 import api.test.services.TestService;
 import org.apache.logging.log4j.LogManager;
