@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -27,8 +28,9 @@ public class TestController {
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView() {
-        LOGGER.info("--------Start handle request");
+    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView(HttpServletRequest request) {
+        Object requestUuid = request.getAttribute("uuid");
+        LOGGER.info("--------Start handle request uuid {}", requestUuid);
         TestServiceContext context = new TestServiceContext(
             10,
             25,
@@ -37,7 +39,7 @@ public class TestController {
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End handle request");
+                    LOGGER.info("--------End successfully handling request uuid {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }
@@ -46,8 +48,9 @@ public class TestController {
             path = "/fail",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getFailureView() {
-        LOGGER.info("--------Start handle request");
+    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getFailureView(HttpServletRequest request) {
+        Object requestUuid = request.getAttribute("uuid");
+        LOGGER.info("--------Start handling request uuid {}", requestUuid);
         TestServiceContext context = new TestServiceContext(
                 1000,
                 2000,
@@ -56,7 +59,7 @@ public class TestController {
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End handle request");
+                    LOGGER.info("--------End successfully handling request uuid {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }

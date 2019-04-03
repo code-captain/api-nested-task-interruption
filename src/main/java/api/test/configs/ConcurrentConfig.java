@@ -1,6 +1,5 @@
 package api.test.configs;
 
-import api.test.models.ExecutorContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,11 +10,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.Executor;
+
+import static api.test.utils.RequestAttributesUtils.getRequest;
 
 @Configuration
 @EnableAsync
@@ -38,9 +37,9 @@ public class ConcurrentConfig  implements AsyncConfigurer {
     }
 
     @Bean
-    @Qualifier("context-aware-executor")
-    public Executor contextAwareExecutor() {
-        ThreadPoolTaskExecutor executor = new ContextAwarePoolExecutor();
+    @Qualifier("request-context-aware-executor")
+    public Executor requestContextAwareExecutor() {
+        ThreadPoolTaskExecutor executor = new RequestContextAwarePoolExecutor();
         executor.setCorePoolSize(0);
         executor.setMaxPoolSize(400);
         executor.setQueueCapacity(0);
@@ -54,7 +53,7 @@ public class ConcurrentConfig  implements AsyncConfigurer {
         return executor;
     }
 
-    public class ContextAwarePoolExecutor extends ThreadPoolTaskExecutor {
+    public class RequestContextAwarePoolExecutor extends ThreadPoolTaskExecutor {
         private final Logger LOGGER = LogManager.getLogger(getClass().getName());
 
         @Override
@@ -63,7 +62,7 @@ public class ConcurrentConfig  implements AsyncConfigurer {
                 HttpServletRequest innerRequest = getRequest(RequestContextHolder.getRequestAttributes());
                 Object requestUuid = innerRequest.getAttribute("uuid");
                 if (requestUuid != null) {
-                    super.execute(new ContextAwareRunnable(task, RequestContextHolder.currentRequestAttributes()));
+                    super.execute(new RequestContextAwareRunnable(task, RequestContextHolder.currentRequestAttributes()));
                     LOGGER.info("Task was running for request uuid {}", requestUuid);
                 } else {
                     LOGGER.warn("Task was rejected for closing request");
@@ -75,11 +74,11 @@ public class ConcurrentConfig  implements AsyncConfigurer {
         }
     }
 
-    public class ContextAwareRunnable implements Runnable {
+    public class RequestContextAwareRunnable implements Runnable {
         private Runnable task;
         private RequestAttributes context;
 
-        ContextAwareRunnable(Runnable task, RequestAttributes context) {
+        RequestContextAwareRunnable(Runnable task, RequestAttributes context) {
             this.task = task;
             this.context = context;
         }
@@ -93,15 +92,6 @@ public class ConcurrentConfig  implements AsyncConfigurer {
             task.run();
             RequestContextHolder.resetRequestAttributes();
         }
-    }
-
-    private static HttpServletRequest getRequest(RequestAttributes requestAttributes) {
-        HttpServletRequest request = null;
-        if(requestAttributes != null) {
-            ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) requestAttributes;
-            request = servletRequestAttributes.getRequest();
-        }
-        return request;
     }
 }
 

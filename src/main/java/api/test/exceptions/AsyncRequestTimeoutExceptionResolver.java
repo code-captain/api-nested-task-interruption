@@ -1,9 +1,7 @@
 package api.test.exceptions;
 
-import api.test.models.ExecutorContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,9 +16,6 @@ import java.io.IOException;
 public class AsyncRequestTimeoutExceptionResolver {
     private final Logger LOGGER = LogManager.getLogger(getClass().getName());
 
-    @Autowired
-    public ExecutorContext executorContext;
-
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     protected ModelAndView handleAsyncRequestTimeoutException(
             AsyncRequestTimeoutException ex,
@@ -30,10 +25,8 @@ public class AsyncRequestTimeoutExceptionResolver {
     ) throws IOException {
         if (!response.isCommitted()) {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            executorContext.setFinished(true);
             LOGGER.warn("AsyncRequestTimeoutException was handling");
-        }
-        else {
+        } else {
             LOGGER.warn("Async request timed out");
         }
         return new ModelAndView();

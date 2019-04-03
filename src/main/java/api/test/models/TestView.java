@@ -13,6 +13,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class TestView {
-    private long id;
+    private String id;
     private List<String> contents = Collections.synchronizedList(new ArrayList<>());
 }

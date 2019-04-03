@@ -4,12 +4,16 @@ import api.test.models.TestServiceContext;
 import api.test.models.TestView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.context.request.RequestContextHolder;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
+import static api.test.utils.RequestAttributesUtils.getRequest;
 
 public class TestServiceImpl implements TestService {
     private final Logger LOGGER = LogManager.getLogger(getClass().getName());
@@ -22,14 +26,16 @@ public class TestServiceImpl implements TestService {
     public CompletableFuture<TestView> getView(TestServiceContext context) {
         TestView view = new TestView();
         return CompletableFuture.supplyAsync(() -> {
-            view.setId(new Random().nextLong());
-            return view;
-        }, executor).thenCompose(none -> {
+            HttpServletRequest request = getRequest(RequestContextHolder.getRequestAttributes());
+            Object uuid = request.getAttribute("uuid");
+            view.setId(String.valueOf(uuid));
+            return uuid;
+        }, executor).thenCompose(uuid -> {
             List<CompletableFuture<Void>> descendentTasksForLevel1 = new ArrayList<>();
 
             //Add first task for level-1
             CompletableFuture<Void> getLevel1DescendentTask1 =
-                    getDescendentTaskWithDelay(view, "1", context.getFirstLevelDescendentTaskDelay())
+                    getDescendentTaskWithDelay(view, uuid, context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
@@ -52,7 +58,7 @@ public class TestServiceImpl implements TestService {
 
             //Add second task for level-1
             CompletableFuture<Void> getDescendentTask2 =
-                    getDescendentTaskWithDelay(view, "2", context.getFirstLevelDescendentTaskDelay())
+                    getDescendentTaskWithDelay(view, uuid, context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
@@ -72,7 +78,7 @@ public class TestServiceImpl implements TestService {
 
             //Add third task for level 1
             CompletableFuture<Void> getDescendentTask3 =
-                    getDescendentTaskWithDelay(view, "3", context.getFirstLevelDescendentTaskDelay())
+                    getDescendentTaskWithDelay(view, uuid, context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
@@ -95,7 +101,7 @@ public class TestServiceImpl implements TestService {
             .thenApply(none -> view);
     }
 
-    private CompletableFuture<String> getDescendentTaskWithDelay(TestView rootView, String rootId, long delayMs) {
+    private CompletableFuture<String> getDescendentTaskWithDelay(TestView rootView, Object rootId, long delayMs) {
         return createDescendentTaskWithDelay(rootId, delayMs)
                 .thenApply(str -> {
                     rootView.getContents().add(str);
@@ -104,7 +110,7 @@ public class TestServiceImpl implements TestService {
                 });
     }
 
-    private CompletableFuture<String> createDescendentTaskWithDelay(String rootId, long delayMs) {
+    private CompletableFuture<String> createDescendentTaskWithDelay(Object rootId, long delayMs) {
         return CompletableFuture.supplyAsync(
                 () -> {
                     try {
@@ -112,12 +118,16 @@ public class TestServiceImpl implements TestService {
                     } catch (InterruptedException e) {
                         LOGGER.error("Thread was interrupted", e);
                     }
-                    return createNodePath(rootId);
+                    return getCreatedDescendentTaskId(rootId);
                 }, executor);
     }
 
-    private String createNodePath(String root) {
+    private String getCreatedDescendentTaskId(Object rootId) {
         int descendId = new Random().nextInt(100);
-        return String.format("%s.%s", root, descendId);
+        return createDescendentTaskId(rootId, descendId);
+    }
+
+    private String createDescendentTaskId(Object rootId, Object objectId) {
+        return String.format("%s.%s", rootId, objectId);
     }
 }

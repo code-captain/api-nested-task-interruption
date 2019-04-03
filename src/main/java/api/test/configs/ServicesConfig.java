@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
 @Import({ConcurrentConfig.class})
 public class ServicesConfig {
     @Bean
-    public TestService testService(@Qualifier("context-aware-executor") Executor executor) {
+    public TestService testService(@Qualifier("request-context-aware-executor") Executor executor) {
         return new TestServiceImpl(executor);
     }
 }
