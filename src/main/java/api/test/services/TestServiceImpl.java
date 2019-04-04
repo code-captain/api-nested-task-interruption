@@ -3,23 +3,21 @@ package api.test.services;
 import api.test.models.TestView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.web.context.request.RequestContextHolder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static api.test.utils.RequestAttributesUtils.getRequest;
-
 public class TestServiceImpl implements TestService {
     private final Logger LOGGER = LogManager.getLogger(getClass().getName());
     private final Executor executor;
+    private final ExecutorContext executorContext;
 
-    public TestServiceImpl(Executor executor) {
+    public TestServiceImpl(Executor executor, ExecutorContext executorContext) {
         this.executor = executor;
+        this.executorContext = executorContext;
     }
 
     public CompletableFuture<TestView> getView(TestServiceContext context) {
@@ -31,21 +29,21 @@ public class TestServiceImpl implements TestService {
 
             //Add first task for level-1
             CompletableFuture<Void> getLevel1DescendentTask1 =
-                    getDescendentTaskWithDelay(view, context.getRequestId(), context.getFirstLevelDescendentTaskDelay())
+                    getDescendentTaskWithDelay(context, view, context.getRequestId(), context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
                             //Add first task for level-2 first task
                             descendentTasksForLevel2.add(
-                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                getDescendentTaskWithDelay(context, view, rootStr, context.getSecondLevelDescendentTaskDelay())
                                     .thenCompose(rootStr1 ->
-                                            getDescendentTaskWithDelay(view, rootStr1, context.getThirdLevelDescendentTaskDelay())
+                                            getDescendentTaskWithDelay(context, view, rootStr1, context.getThirdLevelDescendentTaskDelay())
                                     )
                             );
 
                             //Add second task for level-2 first task
                             descendentTasksForLevel2.add(
-                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                getDescendentTaskWithDelay(context, view, rootStr, context.getSecondLevelDescendentTaskDelay())
                             );
 
                             return CompletableFuture.allOf(descendentTasksForLevel2.toArray(new CompletableFuture[]{}));
@@ -54,18 +52,18 @@ public class TestServiceImpl implements TestService {
 
             //Add second task for level-1
             CompletableFuture<Void> getDescendentTask2 =
-                    getDescendentTaskWithDelay(view, context.getRequestId(), context.getFirstLevelDescendentTaskDelay())
+                    getDescendentTaskWithDelay(context, view, context.getRequestId(), context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
                             //Add first task for level-2 second task
                             descendentTasksForLevel2.add(
-                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                getDescendentTaskWithDelay(context, view, rootStr, context.getSecondLevelDescendentTaskDelay())
                             );
 
                             //Add second task for level-2 second task
                             descendentTasksForLevel2.add(
-                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                getDescendentTaskWithDelay(context, view, rootStr, context.getSecondLevelDescendentTaskDelay())
                             );
 
                             return CompletableFuture.allOf(descendentTasksForLevel2.toArray(new CompletableFuture[]{}));
@@ -74,18 +72,18 @@ public class TestServiceImpl implements TestService {
 
             //Add third task for level 1
             CompletableFuture<Void> getDescendentTask3 =
-                    getDescendentTaskWithDelay(view, context.getRequestId(), context.getFirstLevelDescendentTaskDelay())
+                    getDescendentTaskWithDelay(context, view, context.getRequestId(), context.getFirstLevelDescendentTaskDelay())
                         .thenCompose(rootStr -> {
                             List<CompletableFuture<String>> descendentTasksForLevel2 = new ArrayList<>();
 
                             //Add first task for level-2 third task
                             descendentTasksForLevel2.add(
-                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                getDescendentTaskWithDelay(context, view, rootStr, context.getSecondLevelDescendentTaskDelay())
                             );
 
                             //Add second task for level-2 third task
                             descendentTasksForLevel2.add(
-                                getDescendentTaskWithDelay(view, rootStr, context.getSecondLevelDescendentTaskDelay())
+                                getDescendentTaskWithDelay(context, view, rootStr, context.getSecondLevelDescendentTaskDelay())
                             );
 
                             return CompletableFuture.allOf(descendentTasksForLevel2.toArray(new CompletableFuture[]{}));
@@ -97,21 +95,20 @@ public class TestServiceImpl implements TestService {
             .thenApply(none -> view);
     }
 
-    private CompletableFuture<String> getDescendentTaskWithDelay(TestView rootView, Object rootId, long delayMs) {
-        return createDescendentTaskWithDelay(rootId, delayMs)
+    private CompletableFuture<String> getDescendentTaskWithDelay(TestServiceContext context, TestView rootView, Object rootId, long delayMs) {
+        return createDescendentTaskWithDelay(context, rootId, delayMs)
                 .thenApply(str -> {
-                    //HttpServletRequest innerRequest = getRequest(RequestContextHolder.getRequestAttributes());
-                    //Object requestUuid = innerRequest.getAttribute("uuid");
-
+                    checkRequestIsExist(context);
                     rootView.getContents().add(str);
                     LOGGER.info("Current id={}", str);
                     return str;
                 });
     }
 
-    private CompletableFuture<String> createDescendentTaskWithDelay(Object rootId, long delayMs) {
+    private CompletableFuture<String> createDescendentTaskWithDelay(TestServiceContext context, Object rootId, long delayMs) {
         return CompletableFuture.supplyAsync(
                 () -> {
+                    checkRequestIsExist(context);
                     try {
                         Thread.sleep(delayMs);
                     } catch (InterruptedException e) {
@@ -119,6 +116,16 @@ public class TestServiceImpl implements TestService {
                     }
                     return getCreatedDescendentTaskId(rootId);
                 }, executor);
+    }
+
+    private void checkRequestIsExist(TestServiceContext context) {
+        Object requestStatus = executorContext.getDestroyedRequestStatuses().get(context.getRequestId());
+        if (requestStatus != null) {
+            LOGGER.error("Task was rejected for execute for closing request {}", context.getRequestId());
+            throw new RuntimeException(
+                new InterruptedException(String.format("Task was rejected for execute for closing request %s", context.getRequestId()))
+            );
+        }
     }
 
     private String getCreatedDescendentTaskId(Object rootId) {

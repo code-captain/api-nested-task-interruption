@@ -30,7 +30,7 @@ public class TestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView(HttpServletRequest request) {
-        Object requestUuid = request.getAttribute("uuid");
+        Object requestUuid = request.getAttribute("api.test.uuid");
         LOGGER.info("--------Start handle request requestId {}", requestUuid);
 
         TestServiceContext context = new TestServiceContext();
@@ -58,7 +58,7 @@ public class TestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getFailureView(HttpServletRequest request) {
-        Object requestUuid = request.getAttribute("uuid");
+        Object requestUuid = request.getAttribute("api.test.uuid");
         LOGGER.info("--------Start handling request requestId {}", requestUuid);
 
         TestServiceContext context = new TestServiceContext();
