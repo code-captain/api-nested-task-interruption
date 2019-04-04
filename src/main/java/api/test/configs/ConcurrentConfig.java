@@ -23,6 +23,7 @@ public class ConcurrentConfig  implements AsyncConfigurer {
         executor.setKeepAliveSeconds(30);
         executor.setThreadNamePrefix("default-pool-");
         executor.setThreadGroupName("default-");
+        executor.setAwaitTerminationSeconds(30);
         executor.setAllowCoreThreadTimeOut(true);
         executor.initialize();
 
