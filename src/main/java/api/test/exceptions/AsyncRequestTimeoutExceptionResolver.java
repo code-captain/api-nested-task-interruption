@@ -23,6 +23,9 @@ public class AsyncRequestTimeoutExceptionResolver {
             HttpServletResponse response,
             @Nullable Object handler
     ) throws IOException {
+        Object requestUuid = request.getAttribute("api.test.uuid");
+        LOGGER.warn("Async request timed out error for request {}",requestUuid);
+
         request.setAttribute("api.test.error-code", HttpServletResponse.SC_SERVICE_UNAVAILABLE);
         if (!response.isCommitted()) {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
