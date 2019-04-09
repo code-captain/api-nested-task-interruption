@@ -1,5 +1,6 @@
 package api.test.services;
 
+import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
 import api.test.models.TestView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,14 +12,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
-public class TimeoutTaskCancellingService implements TestService {
-    private final Logger LOGGER = LogManager.getLogger(getClass().getName());
+public class TaskInterruptByTimeoutService implements TestService {
+    private final Logger logger = LogManager.getLogger(getClass().getName());
     private final Executor executor;
-    private final ExecutorContext executorContext;
+    private final ApplicationRequestContextListenerContainer requestContextListenerContainer;
 
-    public TimeoutTaskCancellingService(Executor executor, ExecutorContext executorContext) {
+    public TaskInterruptByTimeoutService(Executor executor, ApplicationRequestContextListenerContainer requestContextListenerContainer) {
         this.executor = executor;
-        this.executorContext = executorContext;
+        this.requestContextListenerContainer = requestContextListenerContainer;
     }
 
     public CompletableFuture<TestView> getView(TestServiceContext context) {
@@ -98,7 +99,7 @@ public class TimeoutTaskCancellingService implements TestService {
         return createDescendentTaskIdWithDelay(context, rootId, delayMs)
                 .thenApply(str -> {
                     rootView.getDescendantTaskIds().add(str);
-                    LOGGER.info("Current added id to descendantTaskIds {}", str);
+                    logger.info("Current added id to descendantTaskIds {}", str);
                     return str;
                 });
     }
@@ -107,7 +108,7 @@ public class TimeoutTaskCancellingService implements TestService {
         return CompletableFuture.supplyAsync(() -> {
             checkRequestIsExist(context);
             rootView.setId(String.valueOf(context.getRequestId()));
-            LOGGER.info("Current added id {}", rootView.getId());
+            logger.info("Current added id {}", rootView.getId());
             return rootView.getId();
         }, executor);
     }
@@ -118,16 +119,16 @@ public class TimeoutTaskCancellingService implements TestService {
             try {
                 Thread.sleep(delayMs);
             } catch (InterruptedException e) {
-                LOGGER.error("Thread was interrupted", e);
+                logger.error("Thread was interrupted", e);
             }
             return getCreatedDescendentTaskId(rootId);
         }, executor);
     }
 
     private void checkRequestIsExist(TestServiceContext context) {
-        Object requestStatus = executorContext.getDestroyedRequestStatuses().get(context.getRequestId());
+        Object requestStatus = requestContextListenerContainer.getDestroyedRequestErrorCodes().get(context.getRequestId());
         if (requestStatus != null) {
-            LOGGER.error("Task was rejected for execute for closing request {}", context.getRequestId());
+            logger.error("Task was rejected for execute for closing request {}", context.getRequestId());
             throw new CompletionException(
                 new InterruptedException(String.format("Task was rejected for execute for closing request %s", context.getRequestId()))
             );

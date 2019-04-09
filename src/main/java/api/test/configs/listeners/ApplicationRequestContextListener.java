@@ -1,6 +1,5 @@
-package api.test.configs;
+package api.test.configs.listeners;
 
-import api.test.services.ExecutorContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -13,13 +12,13 @@ import java.util.UUID;
 
 @Configuration
 @WebListener
-public class CustomRequestContextListener extends RequestContextListener {
-    private final ExecutorContext executorContext;
+public class ApplicationRequestContextListener extends RequestContextListener {
+    private final ApplicationRequestContextListenerContainer container;
     private static final String REQUEST_ATTRIBUTES_ATTRIBUTE =
             RequestContextListener.class.getName() + ".REQUEST_ATTRIBUTES";
 
-    public CustomRequestContextListener(ExecutorContext executorContext) {
-        this.executorContext = executorContext;
+    public ApplicationRequestContextListener(ApplicationRequestContextListenerContainer container) {
+        this.container = container;
     }
 
     @Override
@@ -27,7 +26,7 @@ public class CustomRequestContextListener extends RequestContextListener {
         super.requestInitialized(requestEvent);
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes != null) {
-            requestAttributes.setAttribute("api.test.uuid", UUID.randomUUID(), 0);
+            requestAttributes.setAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID, UUID.randomUUID(), 0);
         }
     }
 
@@ -39,10 +38,10 @@ public class CustomRequestContextListener extends RequestContextListener {
             attributes = (ServletRequestAttributes) reqAttr;
         }
         if (attributes != null) {
-            Object requestUuid = attributes.getAttribute("api.test.uuid", 0);
-            Object requestErrorUuid = attributes.getAttribute("api.test.error-code", 0);
+            Object requestUuid = attributes.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID, 0);
+            Object requestErrorUuid = attributes.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_ERROR_CODE, 0);
             if (requestUuid != null && requestErrorUuid != null) {
-                executorContext.getDestroyedRequestStatuses().putIfAbsent(requestUuid, requestErrorUuid);
+                container.getDestroyedRequestErrorCodes().putIfAbsent(requestUuid, requestErrorUuid);
             }
         }
         super.requestDestroyed(requestEvent);

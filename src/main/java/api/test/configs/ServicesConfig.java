@@ -1,9 +1,8 @@
 package api.test.configs;
 
-import api.test.services.ExecutorContext;
-import api.test.services.ExplicitTaskCancellingTestService;
+import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
 import api.test.services.TestService;
-import api.test.services.TimeoutTaskCancellingService;
+import api.test.services.TaskInterruptByTimeoutService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,14 +14,10 @@ import java.util.concurrent.Executor;
 @Import({ConcurrentConfig.class})
 public class ServicesConfig {
     @Bean
-    @Qualifier("timeout-task-cancelling")
-    public TestService timeoutTaskCancellingService(@Qualifier("default-executor") Executor executor, ExecutorContext executorContext) {
-        return new TimeoutTaskCancellingService(executor, executorContext);
-    }
-
-    @Bean
-    @Qualifier("explicit-task-cancelling")
-    public TestService explicitTaskCancellingTestService(@Qualifier("default-executor") Executor executor) {
-        return new ExplicitTaskCancellingTestService(executor);
+    public TestService timeoutTaskCancellingService(
+            @Qualifier("default-executor") Executor executor,
+            ApplicationRequestContextListenerContainer requestContextListenerContainer
+    ) {
+        return new TaskInterruptByTimeoutService(executor, requestContextListenerContainer);
     }
 }

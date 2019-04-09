@@ -1,5 +1,6 @@
 package api.test.exceptions;
 
+import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.lang.Nullable;
@@ -23,8 +24,8 @@ public class AsyncRequestTimeoutExceptionResolver {
             HttpServletResponse response,
             @Nullable Object handler
     ) throws IOException {
-        request.setAttribute("api.test.error-code", HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-        Object requestUuid = request.getAttribute("api.test.uuid");
+        request.setAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_ERROR_CODE, HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+        Object requestUuid = request.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID);
         LOGGER.warn("Async request timed out error for request {}",requestUuid);
         if (!response.isCommitted()) {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
