@@ -43,7 +43,8 @@ public class NestedTaskController {
             new Random().nextInt((450 - 100) + 1) + 100
         );
         context.setThirdLevelDescendentTaskDelay(
-            new Random().nextInt((650 - 185) + 1) + 185
+            //new Random().nextInt((1150 - 1150) + 1) + 1185
+                1150
         );
 
         return service.getView(context)

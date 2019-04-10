@@ -1,6 +1,7 @@
 package api.nested.task.configs.listeners;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.RequestContextListener;
@@ -37,13 +38,22 @@ public class ApplicationRequestContextListener extends RequestContextListener {
         if (reqAttr instanceof ServletRequestAttributes) {
             attributes = (ServletRequestAttributes) reqAttr;
         }
-        if (attributes != null) {
-            Object requestUuid = attributes.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID, 0);
-            Object requestErrorUuid = attributes.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_ERROR_CODE, 0);
-            if (requestUuid != null && requestErrorUuid != null) {
-                container.getDestroyedRequestErrorCodes().putIfAbsent(requestUuid, requestErrorUuid);
+        RequestAttributes threadAttributes = RequestContextHolder.getRequestAttributes();
+        if (threadAttributes != null) {
+            // We're assumably within the original request thread...
+            LocaleContextHolder.resetLocaleContext();
+            RequestContextHolder.resetRequestAttributes();
+            if (attributes == null && threadAttributes instanceof ServletRequestAttributes) {
+                attributes = (ServletRequestAttributes) threadAttributes;
             }
         }
-        super.requestDestroyed(requestEvent);
+        if (attributes != null) {
+            //Object requestUuid = attributes.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID, 0);
+            //Object requestErrorUuid = attributes.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_ERROR_CODE, 0);
+            //if (requestUuid != null && requestErrorUuid != null) {
+            //    container.getDestroyedRequestErrorCodes().putIfAbsent(requestUuid, requestErrorUuid);
+            //}
+            attributes.requestCompleted();
+        }
     }
 }

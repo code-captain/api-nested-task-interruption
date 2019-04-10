@@ -106,7 +106,9 @@ public class NestedTaskInterruptionService implements NestedTaskService {
 
     private CompletableFuture<String> createTaskId(NestedTaskServiceContext context, NestedTaskView rootView) {
         return CompletableFuture.supplyAsync(() -> {
-            checkRequestIsExist(context);
+            long threadId = Thread.currentThread().getId();
+            logger.info("Start task for {}, threadId {}", context.getRequestId(), threadId);
+            //checkRequestIsExist(context);
             rootView.setRootTaskId(String.valueOf(context.getRequestId()));
             logger.info("Current added rootTaskId {}", rootView.getRootTaskId());
             return rootView.getRootTaskId();
@@ -115,7 +117,9 @@ public class NestedTaskInterruptionService implements NestedTaskService {
 
     private CompletableFuture<String> createDescendentTaskIdWithDelay(NestedTaskServiceContext context, Object rootId, long delayMs) {
         return CompletableFuture.supplyAsync(() -> {
-            checkRequestIsExist(context);
+            long threadId = Thread.currentThread().getId();
+            logger.info("Start task for {}, threadId {}", context.getRequestId(), threadId);
+            //checkRequestIsExist(context);
             try {
                 Thread.sleep(delayMs);
             } catch (InterruptedException e) {

@@ -15,7 +15,7 @@ import java.util.concurrent.Executor;
 public class ServicesConfig {
     @Bean
     public NestedTaskService nestedTaskService(
-            @Qualifier("default-executor") Executor executor,
+            @Qualifier("request-context-aware-executor") Executor executor,
             ApplicationRequestContextListenerContainer requestContextListenerContainer
     ) {
         return new NestedTaskInterruptionService(executor, requestContextListenerContainer);
