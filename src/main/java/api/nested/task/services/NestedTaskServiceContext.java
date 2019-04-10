@@ -1,4 +1,4 @@
-package api.test.services;
+package api.nested.task.services;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TestServiceContext {
+public class NestedTaskServiceContext {
     private Object requestId;
     private long firstLevelDescendentTaskDelay;
     private long secondLevelDescendentTaskDelay;

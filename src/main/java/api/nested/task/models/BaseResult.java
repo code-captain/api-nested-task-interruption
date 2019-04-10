@@ -1,4 +1,4 @@
-package api.test.models;
+package api.nested.task.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

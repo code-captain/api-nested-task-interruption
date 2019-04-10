@@ -1,7 +1,7 @@
-package api.test.services;
+package api.nested.task.services;
 
-import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
-import api.test.models.TestView;
+import api.nested.task.models.NestedTaskView;
+import api.nested.task.configs.listeners.ApplicationRequestContextListenerContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,18 +12,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
-public class TaskInterruptByTimeoutService implements TestService {
+public class NestedTaskInterruptionService implements NestedTaskService {
     private final Logger logger = LogManager.getLogger(getClass().getName());
     private final Executor executor;
     private final ApplicationRequestContextListenerContainer requestContextListenerContainer;
 
-    public TaskInterruptByTimeoutService(Executor executor, ApplicationRequestContextListenerContainer requestContextListenerContainer) {
+    public NestedTaskInterruptionService(Executor executor, ApplicationRequestContextListenerContainer requestContextListenerContainer) {
         this.executor = executor;
         this.requestContextListenerContainer = requestContextListenerContainer;
     }
 
-    public CompletableFuture<TestView> getView(TestServiceContext context) {
-        TestView view = new TestView();
+    public CompletableFuture<NestedTaskView> getView(NestedTaskServiceContext context) {
+        NestedTaskView view = new NestedTaskView();
         return createTaskId(context, view).thenCompose(none -> {
             List<CompletableFuture<Void>> descendentTasksForLevel1 = new ArrayList<>();
 
@@ -95,25 +95,25 @@ public class TaskInterruptByTimeoutService implements TestService {
             .thenApply(none -> view);
     }
 
-    private CompletableFuture<String> getDescendentTaskIdWithDelay(TestServiceContext context, TestView rootView, Object rootId, long delayMs) {
+    private CompletableFuture<String> getDescendentTaskIdWithDelay(NestedTaskServiceContext context, NestedTaskView rootView, Object rootId, long delayMs) {
         return createDescendentTaskIdWithDelay(context, rootId, delayMs)
                 .thenApply(str -> {
                     rootView.getDescendantTaskIds().add(str);
-                    logger.info("Current added id to descendantTaskIds {}", str);
+                    logger.info("Current added rootTaskId to descendantTaskIds {}", str);
                     return str;
                 });
     }
 
-    private CompletableFuture<String> createTaskId(TestServiceContext context, TestView rootView) {
+    private CompletableFuture<String> createTaskId(NestedTaskServiceContext context, NestedTaskView rootView) {
         return CompletableFuture.supplyAsync(() -> {
             checkRequestIsExist(context);
-            rootView.setId(String.valueOf(context.getRequestId()));
-            logger.info("Current added id {}", rootView.getId());
-            return rootView.getId();
+            rootView.setRootTaskId(String.valueOf(context.getRequestId()));
+            logger.info("Current added rootTaskId {}", rootView.getRootTaskId());
+            return rootView.getRootTaskId();
         }, executor);
     }
 
-    private CompletableFuture<String> createDescendentTaskIdWithDelay(TestServiceContext context, Object rootId, long delayMs) {
+    private CompletableFuture<String> createDescendentTaskIdWithDelay(NestedTaskServiceContext context, Object rootId, long delayMs) {
         return CompletableFuture.supplyAsync(() -> {
             checkRequestIsExist(context);
             try {
@@ -125,7 +125,7 @@ public class TaskInterruptByTimeoutService implements TestService {
         }, executor);
     }
 
-    private void checkRequestIsExist(TestServiceContext context) {
+    private void checkRequestIsExist(NestedTaskServiceContext context) {
         Object requestStatus = requestContextListenerContainer.getDestroyedRequestErrorCodes().get(context.getRequestId());
         if (requestStatus != null) {
             logger.error("Task was rejected for execute for closing request {}", context.getRequestId());

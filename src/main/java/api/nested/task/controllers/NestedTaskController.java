@@ -1,10 +1,10 @@
-package api.test.controllers;
+package api.nested.task.controllers;
 
-import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
-import api.test.models.BaseResult;
-import api.test.models.TestView;
-import api.test.services.TestService;
-import api.test.services.TestServiceContext;
+import api.nested.task.models.BaseResult;
+import api.nested.task.models.NestedTaskView;
+import api.nested.task.services.NestedTaskService;
+import api.nested.task.services.NestedTaskServiceContext;
+import api.nested.task.configs.listeners.ApplicationRequestContextListenerContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
@@ -19,22 +19,22 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("api/v1/test")
-public class TestController {
-    private final TestService service;
-    private final Logger LOGGER = LogManager.getLogger(getClass().getName());
+public class NestedTaskController {
+    private final NestedTaskService service;
+    private final Logger logger = LogManager.getLogger(getClass().getName());
 
-    public TestController(TestService service) {
+    public NestedTaskController(NestedTaskService service) {
         this.service = service;
     }
 
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public CompletableFuture<ResponseEntity<BaseResult<TestView>>> getView(HttpServletRequest request) {
+    public CompletableFuture<ResponseEntity<BaseResult<NestedTaskView>>> getView(HttpServletRequest request) {
         Object requestUuid = request.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID);
-        LOGGER.info("--------Start handling request id {}", requestUuid);
+        logger.info("--------Start handling request rootTaskId {}", requestUuid);
 
-        TestServiceContext context = new TestServiceContext();
+        NestedTaskServiceContext context = new NestedTaskServiceContext();
         context.setRequestId(requestUuid);
         context.setFirstLevelDescendentTaskDelay(
             new Random().nextInt((850 - 250) + 1) + 250
@@ -49,7 +49,7 @@ public class TestController {
         return service.getView(context)
                 .thenApply(BaseResult::new)
                 .thenApply(body -> {
-                    LOGGER.info("--------End handling request requestId {}", requestUuid);
+                    logger.info("--------End handling request requestId {}", requestUuid);
                     return ResponseEntity.ok(body);
                 });
     }

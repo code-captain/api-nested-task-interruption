@@ -1,8 +1,8 @@
-package api.test.configs;
+package api.nested.task.configs;
 
-import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
-import api.test.services.TestService;
-import api.test.services.TaskInterruptByTimeoutService;
+import api.nested.task.configs.listeners.ApplicationRequestContextListenerContainer;
+import api.nested.task.services.NestedTaskService;
+import api.nested.task.services.NestedTaskInterruptionService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +14,10 @@ import java.util.concurrent.Executor;
 @Import({ConcurrentConfig.class})
 public class ServicesConfig {
     @Bean
-    public TestService timeoutTaskCancellingService(
+    public NestedTaskService nestedTaskService(
             @Qualifier("default-executor") Executor executor,
             ApplicationRequestContextListenerContainer requestContextListenerContainer
     ) {
-        return new TaskInterruptByTimeoutService(executor, requestContextListenerContainer);
+        return new NestedTaskInterruptionService(executor, requestContextListenerContainer);
     }
 }

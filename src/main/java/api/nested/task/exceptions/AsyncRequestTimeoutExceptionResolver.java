@@ -1,6 +1,6 @@
-package api.test.exceptions;
+package api.nested.task.exceptions;
 
-import api.test.configs.listeners.ApplicationRequestContextListenerContainer;
+import api.nested.task.configs.listeners.ApplicationRequestContextListenerContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.lang.Nullable;
@@ -15,7 +15,7 @@ import java.io.IOException;
 
 @ControllerAdvice
 public class AsyncRequestTimeoutExceptionResolver {
-    private final Logger LOGGER = LogManager.getLogger(getClass().getName());
+    private final Logger logger = LogManager.getLogger(getClass().getName());
 
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     protected ModelAndView handleAsyncRequestTimeoutException(
@@ -26,11 +26,11 @@ public class AsyncRequestTimeoutExceptionResolver {
     ) throws IOException {
         request.setAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_ERROR_CODE, HttpServletResponse.SC_SERVICE_UNAVAILABLE);
         Object requestUuid = request.getAttribute(ApplicationRequestContextListenerContainer.REQUEST_ATTRIBUTES_UUID);
-        LOGGER.warn("Async request timed out error for request {}",requestUuid);
+        logger.warn("Async request timed out error for request {}",requestUuid);
         if (!response.isCommitted()) {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
         } else {
-            LOGGER.warn("Async request timed out");
+            logger.warn("Async request timed out");
         }
         return new ModelAndView();
     }

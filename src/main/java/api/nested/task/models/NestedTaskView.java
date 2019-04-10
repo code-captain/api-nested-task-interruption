@@ -1,4 +1,4 @@
-package api.test.models;
+package api.nested.task.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TestView {
-    private String id;
+public class NestedTaskView {
+    private String rootTaskId;
     private List<String> descendantTaskIds = Collections.synchronizedList(new ArrayList<>());
 }

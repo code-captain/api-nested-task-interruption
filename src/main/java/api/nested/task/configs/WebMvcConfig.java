@@ -1,4 +1,4 @@
-package api.test.configs;
+package api.nested.task.configs;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

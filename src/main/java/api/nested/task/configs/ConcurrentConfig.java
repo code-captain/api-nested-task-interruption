@@ -1,4 +1,4 @@
-package api.test.configs;
+package api.nested.task.configs;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,7 @@ import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
-public class ConcurrentConfig  implements AsyncConfigurer {
+public class ConcurrentConfig implements AsyncConfigurer {
 
     @Bean
     @Qualifier("default-executor")
